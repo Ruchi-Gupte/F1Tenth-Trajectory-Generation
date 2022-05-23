@@ -21,67 +21,57 @@ from scipy.interpolate import splprep, splev
 
 # ADD A FEW POINTS HERE TO MAKE INTO SPLINE
 pts = np.array([
-[ 0.165  , -0.0924],
-[ 1.78  , 0.0541 ],
-[  3.49 , 1.06 ],
-[ 5.01  , 3.23 ],
-[ 6.25  , 5.81 ],
-[  7.58 , 7.85 ],
-[ 9.5  ,  9.3],
-[  10.9 , 9.3 ],
-[ 10.6  , 8.09 ],
-[  9.07  , 7.1  ],
-[  8.31 ,  5.82 ],
-[  8.83 ,  4.9 ],
-[  10.1 ,  5.13 ],
-[  11.6 ,  5.92 ],
-[  13.4 , 7.34  ],
-[  13.8 , 8.86  ],
-[  13.3 ,  10.1 ],
-[  13.8 , 11  ],
-# [  11.5 ,  6.07 ],
-# [  13.1 ,  7.67 ],
-# [  13.4 ,  9.29 ],
-# [  13.1 ,  10.5 ],
-# [ 13.6  , 11.3  ],
-[ 14.8  ,  11.3 ],
-[  15.7 , 10.2  ],
-# [ 9.22  ,  6.97],
-# [ 8.71  , 5.76 ],
-# [ 9.41  , 4.9 ],
-# [ 10.7  , 5.58 ],
-# [  13.1 , 7.11 ],
-# [  13.7 ,  8.12],
-# [ 13.5  , 9.34 ],
-# [  13.3 , 10.5 ],
-# [ 14.1  ,  11.3],
-# [  15.2 , 10.5 ],
-# [ 16  , 9.28 ],
-[  16.8 , 7.91 ],
-[ 16.7  , 6.9 ],
-[ 15.5  , 5.59 ],
-[ 11.8  , 2.85 ],
-[ 7.57  , -0.0224 ],
-[  2.89 , -2.98 ],
-[  0.565 , -3.93 ],
-[  -1.29 , -3.62 ],
-[ -2.52  , -2.13 ],
-[ -2.22  , -0.738 ],
-[ -1.33  , -0.306 ]
+[ 7.35  ,0.221 ],
+[  4.61 , -1.35],
+[  2.55 , -2.7],
+[ 0.741  , -3.85 ],
+[  -0.665 , -4.4],
+[  -2.12 , -3.45 ],
+[ -2.96  , -2.16 ],
+[ -2.56  , -0.745],
+[ -1.33  ,-0.0143 ],
+[ 0.38  ,-0.0848 ],
+[ 2.08  ,-0.318 ],
+[  3.53 ,0.525 ],
+[ 4.86  , 2.43],
+[ 6.23  , 5.0 ],
+[ 6.91  ,7.21 ],
+[  8.86 , 9.11],
+[ 10.1  , 9.82],
+[ 10.9  , 9.92],
+[ 11.3  , 8.9],
+[ 10.3, 7.63 ],
+[ 9.08  ,6.67 ],
+[ 8.38  , 5.92],
+[ 8.5  , 5.19],
+[  9.2 , 4.61],
+[ 10.4  ,5.4 ],
+[ 12.1  , 6.41],
+[ 13.5  , 7.49],
+[  13.9 , 8.44 ],
+[ 13.1   , 10.1],
+[ 13.7  , 11.2 ],
+[ 15  , 10.4],
+[ 16.1  , 8.71 ],
+[  16.9 , 6.91 ],
+[  15.4 , 5.01 ],
+[  13.4 , 4.1],
+[  11.2 , 2.55 ],
+[ 7.35  ,0.221 ]
 ])
 
 
 #COMMENT THIS PART OUT IF TRYING TO DO 1 or 2 BELOW
-# pts = pts.T
-# x,y = pts
-# tck, u = interpolate.splprep([x, y], s=0, per=True)
+pts = pts.T
+x,y = pts
+tck, u = interpolate.splprep([x, y], s=0, per=True)
 
-# xi, yi = interpolate.splev(np.linspace(0, 1, 2000), tck)
+xi, yi = interpolate.splev(np.linspace(0, 1, 2000), tck)
 
-# xi = xi.reshape((-1,1))
-# yi = yi.reshape((-1,1))
+xi = xi.reshape((-1,1))
+yi = yi.reshape((-1,1))
 
-# new_pts = np.hstack((xi,yi)).T
+new_pts = np.hstack((xi,yi)).T
 
 # 1:TO VISUALIZE JUST THE POINTS
 # pts = pts.T
@@ -90,8 +80,10 @@ pts = np.array([
 # 2: TO VISUALIZE THE TUMN RACELINE
 my_data = np.genfromtxt('/sim_ws/src/pure_pursuit/scripts/traj_race_cl.csv', delimiter=';')
 my_array  = np.vstack((my_data[:,1], my_data[:,2], my_data[:,5], my_data[:,3], my_data[:,4])).T
-np.save("trajectory.npy",my_array)
-new_pts= my_array[:,0:2].T
+np.save("/sim_ws/src/pure_pursuit/scripts/trajectory.npy",my_array)
+new_pts2= my_array[:,0:2].T
+np.savetxt("/sim_ws/src/pure_pursuit/scripts/avoidance_trajectory.csv", new_pts2, delimiter=",")
+
 
 
 class PurePursuit(Node):
@@ -107,7 +99,6 @@ class PurePursuit(Node):
             Type: numpy array -> Shape : [2,1000] where 2 corresponds to x and y and 1000 are the number of points
         """
         self.waypoints = new_pts
-
         # self.waypoints= np.load("/sim_ws/src/pure_pursuit/scripts/trajectory.npy")[:,:2].T
         vis_topic = "visualization_marker"
         self.visualize_pub              =       self.create_publisher(Marker, vis_topic, 10)
@@ -135,6 +126,14 @@ class PurePursuit(Node):
             p.y     =       self.waypoints[1,i]
             p.z     =       0.0
             self.vis_msg.points.append(p)
+
+        for i in range(new_pts2.shape[1]):
+            p       =       Point()
+            p.x     =       new_pts2[0,i]
+            p.y     =       new_pts2[1,i]
+            p.z     =       0.0
+            self.vis_msg.points.append(p)
+
         
         self.data= []
         timer_period = 0.5
